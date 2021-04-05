@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  width: 100%;
+  border: 1px solid #ddd;
+}
+
+th, td {
+  text-align: left;
+  padding: 16px;
+}
+
+tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+</style>
+</head>
+<body>
+
+<h2><%="총회원수는 "+members.length%></h2>
+
+<!-- th는 td와 같은데 제목용도로 그냥 조금 두껍게 보임 -->
+<table>
+  <tr>
+    <th>pk</th>
+    <th>회원아이디</th> 
+    <th>회원명</th>
+    <th>비밀번호</th>
+    <th>가입일</th>
+  </tr>
+  <!-- 서버는 파일의 확장자가 ejs인경우 html처럼 단순히 읽은 후 전송만 하는게 아니다.
+        즉, 확장자가 ejs인 경우에는 퍼센트로 감싼 영역에 대해서는 해석 및 실행까지 해버린다
+        따라서 %영역은 서버측의 스크립트 언어로 볼 수 있다... 참고 우리가 지금가지 사용하던 script 태그 안의 javascript는 
+  -->
+  <!-- <%="문서에 문자열 출력하는 코드(=)이용하는 거야"%> -->
+  <%for(var i=0;i<members.length;i++){ %>
+  <%var obj=members[i]; //배열에서 i번째 요소를 끄집어내서 회원 1명을 반환하자!!%>
+  <tr>
+    <td><%=obj.member_id%></td>
+    <td><%=obj.user_id%></td>
+    <td><%=obj.user_pass%></td>
+    <td><%=obj.user_name%></td>
+    <td><%=obj.regdate%></td>
+  
+  </tr>
+  <%}%>
+</table>
+
+</body>
+</html>
