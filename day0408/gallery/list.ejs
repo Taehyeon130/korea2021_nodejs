@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  width: 100%;
+  border: 1px solid #ddd;
+}
+
+th, td {
+  text-align: left;
+  padding: 16px;
+}
+
+tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+</style>
+</head>
+<body>
+
+<h2>게시물 수는  <%=galleryList.length%></h2>
+
+<table>
+  <tr>
+    <th>No</th>
+    <th>이미지</th>
+    <th>제목</th>
+    <th>작성자</th>
+    <th>작성일</th>
+    <th>조회수</th>
+  </tr>
+  <%var totalRecord = galleryList.length; //총 게시물 수를 담자%>
+  <%for(var i=0;i<galleryList.length;i++){%>
+  <%var gallery = galleryList[i];%>
+    <tr>
+      <td><%=(totalRecord--)%></td>
+      <td><img src="/upload/<%=gallery.filename%>" width="45px">
+      </td>
+    <td>
+      <a href="/gallery/detail?gallery_id=<%=gallery.gallery_id%>"><%=gallery.title%></a> 
+    </td>
+    <td><%=gallery.writer%></td>
+    <%var d = new Date(gallery.regdate);%>
+    <td>
+      <%=d.getFullYear()%>-<%=lib.getZeroString(d.getMonth()+1)%>-<%=lib.getZeroString(d.getDate())%>
+    </td>
+    <td><%=gallery.hit%></td>
+  </tr>
+  <%}%>
+  <tr>
+    <td colspan="6">
+      <button onClick="location.href='/gallery/regist_form.html'">글 쓰기</button>
+    </td>
+  </tr>
+</table>
+
+</body>
+</html>
