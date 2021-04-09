@@ -7,7 +7,6 @@
 <style>
 body {font-family: Arial, Helvetica, sans-serif;}
 * {box-sizing: border-box;}
-
 input[type=text], textarea,input[type=file]{
   width: 100%;
   padding: 12px;
@@ -18,19 +17,14 @@ input[type=text], textarea,input[type=file]{
   margin-bottom: 16px;
   resize: vertical;
 }
-
 textarea{
   height:200px;
 }
-
 /*미리보기 이미지*/
-
 #preview{
   width: 300px;
   /* 너비만 주면 높이는 비율에 따라 알아서 설정됨 */
-
 }
-
 input[type=button] {
   background-color: #4CAF50;
   color: white;
@@ -39,11 +33,9 @@ input[type=button] {
   border-radius: 4px;
   cursor: pointer;
 }
-
 input[type=button]:hover {
   background-color: #45a049;
 }
-
 .container {
   border-radius: 5px;
   background-color: #f2f2f2;
@@ -58,7 +50,6 @@ input[type=button]:hover {
     누구를 자리에 올수 있는 요소? - CSS의 selector가 올수 있다
     //  온로드 윈도우 리스너랑 똑같아 줄인거야
   */
-
   $(function(){ //onLoad 되면...
     // 편집기 입히기
     CKEDITOR.replace( 'content' );
@@ -81,11 +72,9 @@ input[type=button]:hover {
       
       var filename = $(this).val().substring($(this).val().lastIndexOf("\\")+1,$(this).val().length); //지정된 옵션으로 문자열의 일부를 추출
       console.log("추출된 파일명",filename);
-
       $("#preview").attr("src","http://localhost:9999/images/"+filename);
     });
   });
-
   function regist(){ //등록
     // form 태그로 영역을 설정
     // attr은 속성을 정하는거
@@ -93,18 +82,27 @@ input[type=button]:hover {
     $("form").attr("method","post"); //용량이 커서 post방식으로 이용해야함
     $("form").attr("enctype","multipart/form-data"); //텍스트 아닌 바이너리 형식도 포함되어있다. 이미지를 올리기 위해서 필요한 코드
     // 만일 이 속성을 지정하지 않으면 절대로 바이너리 파일 전송은 불가능하다
-
     $("form").submit(); //전송 행위 발생
-
   }
-
   function getList(){//목록
     location.href="/gallery/list";
   }
-
   function del(){ // 삭제
     if(confirm("삭제하시겠습니까?")){
-      location.href="/gallery/del?gallery_id=<%=gallery.gallery_id%>&filename=<%=gallery.filename%>";
+      $("form").attr("action","/gallery/del"); 
+      $("form").attr("method","post"); 
+      $("form").attr("enctype","multipart/form-data");
+      $("form").submit(); 
+    
+    }
+  }
+
+  function edit(){//post - 양도 많고 바이너리 파일도 포함될수 있으므로 당연한것
+    if(confirm("수정하시겠습니까?")){
+      $("form").attr("action","/gallery/edit"); 
+      $("form").attr("method","post"); 
+      $("form").attr("enctype","multipart/form-data");
+      $("form").submit(); //전송 발생
     }
   }
 </script>
@@ -121,11 +119,11 @@ input[type=button]:hover {
     차이점) id- 유일/ name - 중복 허용(배열로 인식)
                                     - 폼 전송 시 전송 파라미터 역할을 한다. 즉 변수 역할을 한다!!
                                     이때 전송파라미터로서 name의 이름은 주로 db의 테이블의 컬럼명과 일치시키는 개발 규칙이 있다 
-
    -->
   <form>
     <!-- 수정, 삭제 시 사용할 gallery_id primary key를 히든으로  -->
     <input type="hidden" name="gallery_id" value= "<%=gallery.gallery_id%>">
+    <input type="hidden" name="filename" value= "<%=gallery.filename%>">
 
     <input type="text" name="title" value= "<%=gallery.title%>">
     <input type="text" name="writer" value="<%=gallery.writer%>">
