@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
+<style>
+body {font-family: Arial, Helvetica, sans-serif;}
+* {box-sizing: border-box;}
+
+input[type=text], textarea{
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  margin-top: 6px;
+  margin-bottom: 16px;
+  resize: vertical;
+}
+
+textarea{
+  height:200px;
+}
+
+input[type=button] {
+  background-color: #4CAF50;
+  color: white;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+input[type=button]:hover {
+  background-color: #45a049;
+}
+
+.container {
+  border-radius: 5px;
+  background-color: #f2f2f2;
+  padding: 20px;
+}
+
+.comment-list div{
+  display: inline-block; 
+  /* 블락속성(크기지정)유지하되 인라인이어서 공존가능 */
+  border: 1px solid green;
+}
+
+
+</style>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script> 
+<!-- 제이쿼리 사용하기 위함 -->
+<script src="https://cdn.ckeditor.com/4.16.0/standard/ckeditor.js"></script>
+<script>
+  /*jquery의 문법형식 (누구를).어떻게 
+    누구를 자리에 올수 있는 요소? - CSS의 selector가 올수 있다
+    //  온로드 윈도우 리스너랑 똑같아 줄인거야
+  */
+
+  $(function(){ //onLoad 되면...
+    // 편집기 입히기
+    CKEDITOR.replace( 'content' );
+    $($("input[type='button']")[0]).click(function(){ //등록
+      edit();
+    });
+    $($("input[type='button']")[1]).click(function(){ //목록
+      getList();
+    });
+  });
+
+  function edit(){ //등록
+    // form 태그로 영역을 설정
+    // attr은 속성을 정하는거
+    $("form").attr("action","/news/edit"); //url정함 단, 서버랑 짝을 맞추자
+    $("form").attr("method","post");
+    $("form").submit(); //전송 행위 발생
+  }
+
+  function getList(){//목록
+    location.href="/news/list";
+  }
+
+  // 댓글 등록 요청
+  function addComment(){
+    $("#comment-form").attr({
+      method:"post",
+      action:"/comments/regist"
+    });
+    $("#comment-form").submit();//전송
+  }
+</script>
+</head>
+<body>
+
+<h3>Contact Form</h3>
+
+<div class="container">
+  <!-- 폼태그의 속성중 action은 이 폼 양식을 전송할 대상 서버의 url을 명시할 수 있다 -->
+  <!-- 
+    id와 name의 공통점 차이점
+    공통) 문서내의 요소를 식별하기 위함
+    차이점) id- 유일/ name - 중복 허용(배열로 인식)
+                                    - 폼 전송 시 전송 파라미터 역할을 한다. 즉 변수 역할을 한다!!
+                                    이때 전송파라미터로서 name의 이름은 주로 db의 테이블의 컬럼명과 일치시키는 개발 규칙이 있다 
+
+   -->
+  <form id="detail-form">
+    <input type="text" name="title" value="<%=news[1]%>">
+    <input type="text" name="writer" value="<%=news[2]%>">
+    <textarea name="content" ><%=news[3]%></textarea>
+    
+    <p></p>
+    <input type="button" value="등록" >
+    <input type="button" value="목록" >
+    <!-- 문서내의 같은 애들은 배열로 생각해서 submit은 0번째 -->
+    <p></p>
+  </form>
+
+  <form id="comment-form">
+    <!-- 아래의 hidden의 용도? 어떤 뉴스기사에 대한 댓글인지 결정 지음-->
+    <input type="hidden"  name="news_id" value="<%=news[0]%>">
+
+    <input type="text"  name="msg" placeholder="댓글 내용" style="width: 70%">
+    <input type="text" name = "author" placeholder="작성자" style="width: 15%">
+    <input type="button" value="댓글 등록"  style="width: 10%" onclick="addComment()">
+  </form>
+
+  <%for(var i=0;i<commentsList.length;i++){%>
+  <div class="comment-list">
+    <div style="width: 70%;">제목</div>
+    <div style="width: 15%;">작성자</div>
+    <div style="width: 10%;">등록일</div>
+  </div>
+<%}%>
+</div>
+
+</body>
+</html>
