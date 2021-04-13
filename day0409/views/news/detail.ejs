@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
+
 <style>
 body {font-family: Arial, Helvetica, sans-serif;}
 * {box-sizing: border-box;}
@@ -84,11 +85,28 @@ input[type=button]:hover {
 
   // 댓글 등록 요청
   function addComment(){
-    $("#comment-form").attr({
-      method:"post",
-      action:"/comments/regist"
-    });
-    $("#comment-form").submit();//전송
+    // $("#comment-form").attr({
+    //   method:"post",
+    //   action:"/comments/regist"
+    // });
+    // $("#comment-form").submit();//전송
+    
+    // 화면의 일부만 변경하기 위해(부분변경), 백그라운드에서 요청을 시도
+    var xhttp = new XMLHttpRequest(); //비동기 객체 생성
+
+      // 이벤트 처리
+      xhttp.onreadystatechange=function(){
+        if(this.readyState==4 && this.status==200){
+          // 서버에서 성공된 응답 데이터가 온 시점
+          alert("서버로부터 받은 결과는 "+this.responseText);
+        }
+      }
+    xhttp.open("POST", "/comments/regist", true);
+    xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    var msg = $("input[name='mag']").val();
+    var author = $("input[name='author']").val();
+    xhttp.send("news_id=<%=news[0]%>&msg="+msg+"&author="+author);
+
   }
 </script>
 </head>
@@ -97,15 +115,7 @@ input[type=button]:hover {
 <h3>Contact Form</h3>
 
 <div class="container">
-  <!-- 폼태그의 속성중 action은 이 폼 양식을 전송할 대상 서버의 url을 명시할 수 있다 -->
-  <!-- 
-    id와 name의 공통점 차이점
-    공통) 문서내의 요소를 식별하기 위함
-    차이점) id- 유일/ name - 중복 허용(배열로 인식)
-                                    - 폼 전송 시 전송 파라미터 역할을 한다. 즉 변수 역할을 한다!!
-                                    이때 전송파라미터로서 name의 이름은 주로 db의 테이블의 컬럼명과 일치시키는 개발 규칙이 있다 
 
-   -->
   <form id="detail-form">
     <input type="text" name="title" value="<%=news[1]%>">
     <input type="text" name="writer" value="<%=news[2]%>">
@@ -128,10 +138,17 @@ input[type=button]:hover {
   </form>
 
   <%for(var i=0;i<commentsList.length;i++){%>
+    <%var comments=commentsList[i]; //댓글 한건 꺼내기%>
   <div class="comment-list">
-    <div style="width: 70%;">제목</div>
-    <div style="width: 15%;">작성자</div>
-    <div style="width: 10%;">등록일</div>
+    <div style="width: 70%;"><%=comments[2]%></div>
+    <div style="width: 15%;"><%=comments[3]%></div>
+    <%
+    var d = new Date(comments[4]);
+    var yy = d.getFullYear();
+    var mm=lib.getZeroString(d.getMon th()+1);
+    var dd = lib.getZeroString(d.getDate());
+    %>
+    <div style="width: 10%;"><%=yy%>-<%=mm%>-<%=dd%></div>
   </div>
 <%}%>
 </div>

@@ -145,7 +145,8 @@ app.get("/news/detail",function(request,response){
                         }else{
                             response.render("news/detail",{
                                 news:result.rows[0], //뉴스 목록
-                                commentsList:record.rows //댓글 목록
+                                commentsList:record.rows, //댓글 목록
+                                lib:mymodule
                             });  //view를 찾을수 없다는 오류가 나온다. ejs는 views안에 들어가 있어야함
                         }
                         con.close();
@@ -172,12 +173,23 @@ app.post("/comments/regist",function(request,response){
             con.execute(sql,[news_id,msg,author],function(error,result){
                 if(error){
                     console.log("insert 쿼리 실행 중 에러 발생");
-                    // server's internal fatal error!! - 500
-                    response.writeHead(500,{"Content-Type":"text/html;charset=utf-8"});
-                    response.end("에러발생");
+                    // // server's internal fatal error!! - 500
+                    // response.writeHead(500,{"Content-Type":"text/html;charset=utf-8"});
+                    // response.end("에러발생");
                 }else{
-                    response.writeHead(200,{"Content-Type":"text/html;charset=utf-8"});
-                    response.end(mymodule.getMsgUrl("댓글 등록","/news/detail?news_id="+news_id));
+                    // 클라이언트가 댓글 목록 요청을 비동기 방식으로 요청했기때문에 클라이언트의 브라우저는 화면이 유지되어야한다.
+                    // 서버는 클라이언트가 보게될  디자인 코드를 보낼 이유가 없다
+                    // 보내는 순간 화면이 바뀌어버리므로 이것은 클라이언트가 원하는 것이 아니다
+                    // 디자인 일부에 사용할 데이터만 보내면 된다!1
+
+                    response.writeHead(200,{"Content-Type":"text/json;charset=utf-8"});
+                    // 네트워크 상으로 주고 받는 데이터는 문자열화 시켜서 주고 받는다!!
+                    var str="";
+                    str += "{";
+                    str += "\"result\":\"안녕\"";
+                    str+="}";
+                    response.end(str); //end()메소드는 문자열을 인수로 받는다!!
+                    // response.end(mymodule.getMsgUrl("댓글 등록","/news/detail?news_id="+news_id));
                 }
                 con.close();
             });
