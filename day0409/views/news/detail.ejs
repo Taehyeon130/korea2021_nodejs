@@ -1,15 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8">    
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
-
 <style>
 body {font-family: Arial, Helvetica, sans-serif;}
 * {box-sizing: border-box;}
-
-input[type=text], textarea{
+input[type=text], textarea {
   width: 100%;
   padding: 12px;
   border: 1px solid #ccc;
@@ -19,11 +17,9 @@ input[type=text], textarea{
   margin-bottom: 16px;
   resize: vertical;
 }
-
 textarea{
-  height:200px;
+  height:100px;
 }
-
 input[type=button] {
   background-color: #4CAF50;
   color: white;
@@ -32,82 +28,114 @@ input[type=button] {
   border-radius: 4px;
   cursor: pointer;
 }
-
 input[type=button]:hover {
   background-color: #45a049;
 }
-
 .container {
   border-radius: 5px;
   background-color: #f2f2f2;
   padding: 20px;
 }
-
 .comment-list div{
-  display: inline-block; 
-  /* 블락속성(크기지정)유지하되 인라인이어서 공존가능 */
-  border: 1px solid green;
+  display:inline-block; /*block속성(크기 가능)을 유지하되, 공존할수있슴*/
+  border:1px solid green;
+}
+</style>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdn.ckeditor.com/4.16.0/standard/ckeditor.js"></script>
+<script src="/js/Comments.js"></script>
+<script>
+$(function(){ //onLoad되면....
+  CKEDITOR.replace("content");
+  $($("input[type='button']")[0]).click(function(){ //등록버튼
+    edit();
+  });
+  $($("input[type='button']")[1]).click(function(){ //목록버튼
+    getList();
+  });
+  
+});
+function edit(){
+  $("form").attr("action","/news/edit");  //url 은 개발자가 정한다, 단 서버랑 짝을 맞추자!!
+  $("form").attr("method","post");  
+  $("form").submit();//전송행위가 발생!!!
+}
+function getList(){
+  location.href="/news/list";
+}
+//댓글 등록 요청
+function addComment(){
+  /*
+  $("#comment-form").attr({
+    method:"post", 
+    action:"/comments/regist"
+  });
+  $("#comment-form").submit(); //전송
+  */
+  //화면의 일부만 변경하기 위해(부분변경)서, 백그라운드에서 요청을 시도해 본다 
+  var xhttp = new XMLHttpRequest();//비동기 객체 생성 
+  //이벤트 처리 
+  xhttp.onreadystatechange=function(){
+    if(this.readyState==4 && this.status==200){
+      //서버에서 성공된 응답데이터가 온 시점이다!!
+      // alert("서버로부터 받은 결과는 "+this.responseText);
+
+      // responseText를 분석하여, 성공, 실패 여부에 따라 알맞는 메시지 출력
+      var json = JSON.parse(this.responseText); //쌍따옴표 걷어내고 json객체 반환
+      // alert("분석결과는"+json.result); //네트워크는 스트링으로 넘겨와서 글자취급함
+      // parse를 이용해서 따옴표를 제거한다.
+      if(json.result==0){
+        alert("댓글 등록 실패")
+      }else{
+        // 댓글불러오기(서버로부터 = get방식/비동기) 가져오는건 get 전송하는건 post
+        // alert("댓글 등록 성공");
+        // location.reload(); //새로고침
+        // 비동기로 요청하자!! 따라서 디자인을 제외한 데이터만 서버로부터 가져오자
+        getCommetsList(); //동기가 아닌 비동기로 호출해주는 함수를 이용하자
+        
+      }
+    }     
+  }
+  xhttp.open("POST", "/comments/regist", true);
+  xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+  var msg=$("input[name='msg']").val();//댓글 내용
+  var author=$("input[name='author']").val();//댓글 작성자
+  xhttp.send("news_id=<%=news[0]%>&msg="+msg+"&author="+author);
+}
+// 댓글 목록을 비동기로 가져오기!! (처음에 게시판 들어올때도 호출 + 코멘트 등록시에도 호출)
+// 서버는 더이상 디자인 코드를 보내주지 않는다. 따라서 비동기 방식으로 데이터만 가져오자
+function getCommetsList(){
+  var xhttp = new XMLHttpRequest();
+  // 메인 실행부는 아래의 이벤트 함수를 통해 비동기 방식의 요청이 완료된 시점을 알 수있다. 
+  xhttp.onreadystatechange = function(){
+    // 서버가 무사히 처리를 했고 응답이 왔다면
+    if(this.readyState==4 && this.status==200){
+      // alert("서버로부터 받은 데이터는"+this.responseText);
+      // 서버가 json 문자열로 전송했기 때문에 다시 json으로 복원을 하여 사용해보자
+      var json = JSON.parse(this.responseText); //문자열을 json으로 반환
+      // alert("코멘트 게시물 수는"+json.rows.length); //2차원 배열의 길이
+
+      // 서버로부터 받은 데이터를 화면에 갱신시켜보자, 이때 개발자는 DOM에 대한 지식이 있어야 html을 동적으로 변경시킨다.
+      printCommentsList(json.rows);
+    }
+   }
+
+  xhttp.open("GET","/comments/list?news_id=<%=news[0]%>",true);
+  xhttp.send();
 }
 
-
-</style>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script> 
-<!-- 제이쿼리 사용하기 위함 -->
-<script src="https://cdn.ckeditor.com/4.16.0/standard/ckeditor.js"></script>
-<script>
-  /*jquery의 문법형식 (누구를).어떻게 
-    누구를 자리에 올수 있는 요소? - CSS의 selector가 올수 있다
-    //  온로드 윈도우 리스너랑 똑같아 줄인거야
-  */
-
-  $(function(){ //onLoad 되면...
-    // 편집기 입히기
-    CKEDITOR.replace( 'content' );
-    $($("input[type='button']")[0]).click(function(){ //등록
-      edit();
-    });
-    $($("input[type='button']")[1]).click(function(){ //목록
-      getList();
-    });
-  });
-
-  function edit(){ //등록
-    // form 태그로 영역을 설정
-    // attr은 속성을 정하는거
-    $("form").attr("action","/news/edit"); //url정함 단, 서버랑 짝을 맞추자
-    $("form").attr("method","post");
-    $("form").submit(); //전송 행위 발생
+// 댓글 출력!!
+function printCommentsList(arr){
+  // 출력전에 기존에 등록된 댓글을 싹 지우자 그후 다시 반복문을 돌리자
+  $("#comments_wrapper").html(""); //innerHTML=""과 동일
+  // console.log(arr);
+  for(var i=0;i<arr.length;i++){ //댓글 수 만큼 반복
+    var msg = arr[i][2];
+    var author=arr[i][3];
+    var writeDay=arr[i][4].substring(0,10);
+    var c = new Comments(document.getElementById("comments_wrapper"), msg,author,writeDay);
   }
-
-  function getList(){//목록
-    location.href="/news/list";
-  }
-
-  // 댓글 등록 요청
-  function addComment(){
-    // $("#comment-form").attr({
-    //   method:"post",
-    //   action:"/comments/regist"
-    // });
-    // $("#comment-form").submit();//전송
-    
-    // 화면의 일부만 변경하기 위해(부분변경), 백그라운드에서 요청을 시도
-    var xhttp = new XMLHttpRequest(); //비동기 객체 생성
-
-      // 이벤트 처리
-      xhttp.onreadystatechange=function(){
-        if(this.readyState==4 && this.status==200){
-          // 서버에서 성공된 응답 데이터가 온 시점
-          alert("서버로부터 받은 결과는 "+this.responseText);
-        }
-      }
-    xhttp.open("POST", "/comments/regist", true);
-    xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-    var msg = $("input[name='mag']").val();
-    var author = $("input[name='author']").val();
-    xhttp.send("news_id=<%=news[0]%>&msg="+msg+"&author="+author);
-
-  }
+}
 </script>
 </head>
 <body>
@@ -115,42 +143,41 @@ input[type=button]:hover {
 <h3>Contact Form</h3>
 
 <div class="container">
-
   <form id="detail-form">
     <input type="text" name="title" value="<%=news[1]%>">
-    <input type="text" name="writer" value="<%=news[2]%>">
-    <textarea name="content" ><%=news[3]%></textarea>
-    
-    <p></p>
-    <input type="button" value="등록" >
-    <input type="button" value="목록" >
-    <!-- 문서내의 같은 애들은 배열로 생각해서 submit은 0번째 -->
-    <p></p>
+    <input type="text"  name="writer" value="<%=news[2]%>">
+    <textarea name="content"><%=news[3]%></textarea>
+
+    <input type="button" value="등록">
+    <input type="button" value="목록">
   </form>
 
   <form id="comment-form">
-    <!-- 아래의 hidden의 용도? 어떤 뉴스기사에 대한 댓글인지 결정 지음-->
-    <input type="hidden"  name="news_id" value="<%=news[0]%>">
+    <!-- 아래의 히든의 용도? 어떤 뉴스기사에 대한 댓글인지를 결정지음  -->
+    <input type="hidden" name="news_id" value="<%=news[0]%>">
 
-    <input type="text"  name="msg" placeholder="댓글 내용" style="width: 70%">
-    <input type="text" name = "author" placeholder="작성자" style="width: 15%">
-    <input type="button" value="댓글 등록"  style="width: 10%" onclick="addComment()">
+    <input type="text" name="msg" placeholder="댓글내용" style="width:70%">
+    <input type="text" name="author" placeholder="작성자" style="width:15%">
+    <input type="button" value="댓글등록" style="width:10%" onClick="addComment()">
   </form>
+  
 
+  <div id="comments_wrapper">
   <%for(var i=0;i<commentsList.length;i++){%>
-    <%var comments=commentsList[i]; //댓글 한건 꺼내기%>
+  <%var comments=commentsList[i]; //댓글 한건 꺼내기%>    
   <div class="comment-list">
-    <div style="width: 70%;"><%=comments[2]%></div>
-    <div style="width: 15%;"><%=comments[3]%></div>
+    <div style="width:70%"><%=comments[2]%></div>    
+    <div style="width:15%"><%=comments[3]%></div>   
     <%
-    var d = new Date(comments[4]);
-    var yy = d.getFullYear();
-    var mm=lib.getZeroString(d.getMon th()+1);
-    var dd = lib.getZeroString(d.getDate());
-    %>
-    <div style="width: 10%;"><%=yy%>-<%=mm%>-<%=dd%></div>
+      var d = new Date(comments[4]);      
+      var yy=d.getFullYear();
+      var mm=lib.getZeroString(d.getMonth()+1); //월
+      var dd = lib.getZeroString(d.getDate());//일
+    %>   
+    <div style="width:10%"><%=yy%>-<%=mm%>-<%=dd%></div>    
   </div>
-<%}%>
+  <%}%>
+  </div>
 </div>
 
 </body>

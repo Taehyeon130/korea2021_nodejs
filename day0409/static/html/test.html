@@ -1,0 +1,51 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Document</title>
+<script>
+    function loadSync(){ //동기
+        // 서버에 있는 자원 중 원하는 자원을 요청하는 법?
+        // get(가져오기)/post(대량의 숨겨진 데이터 보내기)
+        location.href="/html/memo.txt"; //이건 get방식
+        // 서버와의 통신을 하러간 주체는 메인실행부라서 
+        // 만일 서버에서 응답이 없을 경우, 메인 실행부가 무한대기에 빠지므로 현재 페이지에 대한 사용자의 이벤트에
+        // 반응이 불가, 단 장점이라면 메인 실행부가 통신을 담당하기 때문에 언제 서버에 응답이 도달했는지를 정확히 알 수 있음
+    }
+
+    // 메인 싫행부가 요청을 시도하는 것이 아니므로 현재 페이지에 대한 사용자의 이벤트처리, UI, 그래픽 처리 등이 가능
+    // 단점, 별도의 실행부가 통신을 시도하기 때문에 서버 측에서 언제 응답을 완료했는지를 메인실행부가 알 수 없다
+    // 따라서 통신 완료 시점에 대해서는 별도의 실행부로 부터 전달받아야한다. 이러한 문제를 ajax라는 기술로 반영해놓았다
+    function loadAsync(){ //비동기
+        var xhttp = new XMLHttpRequest(); //비동기통신 객체
+
+        // 별도의 실행부가 백그라운드에서 서버에 요청을 하러 떠났기때문에 
+        // 메인 실행부가 서버의 응답 도착 시점을 알기위해서 아래와 같은 이벤트처리가 지원됨
+        // 서버의 상태를 메인실행부에 알려줌
+        xhttp.onreadystatechange = function() {
+            // alert("클라이언트의 요청에 대한 처리 단계는 "+this.readyState);
+            // 1: 연결  2: 요청도착  3: 서버가 요청 처리  4: 요청끝나고 응답 준비됨 
+
+            //응답을 받되, 요청 처리가 성공된 경우에만
+            if (this.readyState == 4 && this.status == 200) {
+            document.getElementById("box").innerHTML = this.responseText;
+            }
+        };
+        xhttp.open("get","/html/memo.txt",true); //요청할 주소, 비동기 여부(true:비동기) 등을 지정
+        xhttp.send(); //통신하러 출발~~ 요청 시작
+    }
+/*
+동기 : 페이지 전체에 변경이 필요할 때 (ex 네이버 >> 다음 )
+비동기 : 현재 페이지는 유지하고 화면의 일부분만 바꾸고 싶을때 (부분 변경)
+*/
+
+</script>
+</head>
+<body>
+    <div id="box"></div>
+    <button onclick="loadSync()">동기로 가져오기</button>
+    <button onclick="loadAsync()">비동기로 가져오기</button>
+</body>
+</html> -->

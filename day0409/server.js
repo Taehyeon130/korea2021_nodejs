@@ -46,7 +46,13 @@ app.get("/news/list",function(request,response){
             console.log(err);
         }else{
             // 쿼리문 실행
-            var sql = "select *from news order by news_id desc";
+            var sql ="select  n.news_id, title, writer, regdate, hit , count(msg) as cnt";
+            sql+=" from news n  left outer join  comments c";
+            sql+=" on n.news_id=c.news_id";
+            sql+=" group by n.news_id, title, writer, regdate, hit";
+            sql+=" order by n.news_id desc";
+
+            // var sql = "select *from news order by news_id desc";
             con.execute(sql,function(err,result){ //오라클에서는 execute사용 execute는 인수가 2개
                 if(err){
                     console.log(err);
@@ -135,11 +141,11 @@ app.get("/news/detail",function(request,response){
                 if(error){//에러 검출
                     console.log("sql 실행 중 에러 발생",error);
                 }else{
-                    console.log("하나의 데이터 가져오기 :",result);
+                    // console.log("하나의 데이터 가져오기 :",result);
 
                     // 댓글 목록도 가져와야함
-                    sql="select * from comments order by comments_id asc";
-                    con.execute(sql,function(e, record){
+                    sql="select * from comments where news_id=:1 order by comments_id asc";
+                    con.execute(sql,[news_id],function(e, record){
                         if(e){
                             console.log("댓글 가져오기 에러",e);
                         }else{
@@ -176,6 +182,11 @@ app.post("/comments/regist",function(request,response){
                     // // server's internal fatal error!! - 500
                     // response.writeHead(500,{"Content-Type":"text/html;charset=utf-8"});
                     // response.end("에러발생");
+                    var str="";
+                    str += "{";
+                    str += "\"result\":0";
+                    str+="}";
+                    response.end(str); //end()메소드는 문자열을 인수로 받는다!!
                 }else{
                     // 클라이언트가 댓글 목록 요청을 비동기 방식으로 요청했기때문에 클라이언트의 브라우저는 화면이 유지되어야한다.
                     // 서버는 클라이언트가 보게될  디자인 코드를 보낼 이유가 없다
@@ -186,12 +197,43 @@ app.post("/comments/regist",function(request,response){
                     // 네트워크 상으로 주고 받는 데이터는 문자열화 시켜서 주고 받는다!!
                     var str="";
                     str += "{";
-                    str += "\"result\":\"안녕\"";
+                    str += "\"result\":1";
                     str+="}";
                     response.end(str); //end()메소드는 문자열을 인수로 받는다!!
                     // response.end(mymodule.getMsgUrl("댓글 등록","/news/detail?news_id="+news_id));
                 }
                 con.close();
+            });
+        }
+    });
+});
+
+// 코멘트 목록 가져오기
+app.get("/comments/list",function(request,response){
+    var news_id=request.query.news_id;//해당 뉴스 기사
+    var sql ="select *from comments where news_id="+news_id;
+    sql+=" order by comments_id desc";
+
+    // 오라클 연동
+    oracledb.getConnection(conStr,function(err,con){
+        if(err){
+            console.log(err);
+        }else{
+            con.execute(sql,function(error,result,fields){
+                if(error){
+                    console.log(error);
+                }else{
+                    // console.log("result is ", result);
+
+                    // 디자인 코드가 아닌, 코멘트 목록을 보내자!!
+                    response.writeHead(200,{"Content-Type":"text/json;charset=utf-8"});
+                    // JSON.stringify() : 제이슨을 문자열화
+                    // response.end(result); //문자열만 전송이 가능해서 json을 굳이 문자열로 바꾸는 것임
+                    
+                    // 코멘트 목록을 문자열화 시켜 보내자
+                    response.end(JSON.stringify(result));
+                }
+                con.close;
             });
         }
     });
