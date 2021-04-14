@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="/css/admin_topnavi.css">
+
+<style>
+    body {font-family: Arial, Helvetica, sans-serif;}
+    * {box-sizing: border-box;}
+
+    input[type=text], select, textarea , input[type=file]{
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+        margin-top: 6px;
+        margin-bottom: 16px;
+        resize: vertical;
+    }
+
+    input[type=button] {
+        background-color: #4CAF50;
+        color: white;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    input[type=button]:hover {
+        background-color: #45a049;
+    }
+
+    .container {
+        border-radius: 5px;
+        background-color: #f2f2f2;
+        padding: 20px;
+    }
+</style>
+<script>
+    // 이 함수 호출시 select 박스에 대한 DOM객체가 넘어온다
+    function getSubList(obj){
+        // 지금 선택한 상위 카테고리에 소속된 하위 카테고리의 목록 가져오기!
+        // 동기방식을 이용하면, 이 요청 처리 시 상위 카테고리까지 같이 가져와야함... 새로고침일 일어나면top에대한 값이 날아가버림
+        // location.href="/admin/product/sublist?topcategory_id="+obj.value;
+
+        // 그래서 비동기로.....
+        
+    }
+</script>
+</head>
+<body>
+    <%- include ('../inc/top_navi')%>
+
+
+<h3>상품 관리</h3>
+
+<div class="container">
+  <form action="/action_page.php">
+    <select name="topcategory_id" onChange="getSubList(this)">
+        <option value="">상위 카테고리 선택</option>
+        <%for(var i=0;i<record.length;i++){%>
+            <%var topcategory = record[i]; //배열에 들어있는 json꺼내기!! %>
+        <option value="<%=topcategory.topcategory_id%>"><%= topcategory.top_name%></option>
+        <%}%>
+
+    </select>
+    <select>
+        <option value="">하위 카테고리 선택</option>
+    </select>
+
+
+    <input type="text" id="fname" name="firstname" placeholder="상품명">
+
+    <input type="text" id="lname" name="lastname" placeholder="가격">
+    <input type="text" id="lname" name="lastname" placeholder="브랜드">
+    <textarea  placeholder="상세설명" style="height:200px"></textarea>
+    <input type="file">
+    <input type="checkbox" name="" id="">85
+    <input type="checkbox" name="" id="">90
+    <input type="checkbox" name="" id="">95
+    <input type="checkbox" name="" id="">100
+    <input type="checkbox" name="" id="">105
+    <input type="checkbox" name="" id="">110
+    <p></p>
+    <input type="button" value="등록">
+  </form>
+</div>
+
+</body>
+</html>
