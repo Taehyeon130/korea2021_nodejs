@@ -46,7 +46,94 @@
         // location.href="/admin/product/sublist?topcategory_id="+obj.value;
 
         // 그래서 비동기로.....
+        var xhttp = new XMLHttpRequest(); //비동기 객체 생성
+
+        // 비동기 객체가 이벤트를 이용하여 알려주지 않으면 완료시점을 알 수가 없다
+        xhttp.onreadystatechange=function(){ 
+            if(this.readyState==4&&this.status==200){
+                //이 시점이 바로 서버의 응답정보가 클라이언트에게 무사히 도착한 시점이다!!!
+                // alert(this.responseText); //이것의 결과는 현재 스트링
+
+                var subArray = JSON.parse(this.responseText); //서버가 보낸 데이터가 문자열이므로 파싱
+                // alert(subArray[0]);
+                
+                // 서브 카테고리의 select박스를 동적으로 제어...
+                var subcategory_id = document.getElementById("subcategory_id");
+
+                // 기존의 option은 모두 지우기
+                var len = subcategory_id.length;
+                for(var i=0;i<len;i++){
+                    subcategory_id.remove(1);
+                }
+
+                // 만들고 싶은 옵션 수 만큼 옵션 요소를 생성하자
+                for(var i=0;i<subArray.length;i++){
+                    var sub = subArray[i]; //배열에서 json객체 하나를 꺼내기!!
+                    var op = document.createElement("option"); //<option></option>과 동일
+                    op.text=sub.sub_name; //<option>아무거나</option>과 동일
+                    op.value=sub.subcategory_id; //<option value="데이터">아무거나</option>과 동일
+                    subcategory_id.add(op); //select박스에 option추가
+                }
+            }
+        }
+
+        xhttp.open("GET","/admin/product/sublist?topcategory_id="+obj.value,true);
+        xhttp.send(); //요청 출발!!   
+    }
+
+    // 상품등록 요청하기 양이 많아서 post방식
+    function regist(){
+        // 유효성 체크
+        if(document.getElementById("topcategory_id").value=="0"){
+            alert("상위 카테고리를 선택해야합니다");
+            return;
+        }
+        if(document.getElementById("subcategory_id").value=="0"){ //서브카테고리 유효성 체크
+            alert("하위 카테고리를 선택해야합니다");
+            return;
+        }
+        if(document.getElementById("product_name").value==""){ 
+            alert("상품명을 입력하세요");
+            document.getElementById("product_name").focus();
+            return;
+        }
+        if(document.getElementById("price").value==""){ 
+            alert("가격을 입력하세요");
+            document.getElementById("price").focus();
+            return;
+        }
+        // isNaN == is not a number 즉 숫자가 아닌것을 잡아내기 위한 함수
+        // 숫자가 아니면 true반환
+        if(isNaN(document.getElementById("price").value)){ 
+            alert("가격은 숫자로 입력하세요");
+            document.getElementById("price").focus();
+            return;
+        }
+        if(document.getElementById("brand").value==""){ 
+            alert("브랜드명을 입력하세요");
+            document.getElementById("brand").focus();
+            return;
+        }
+        if(document.getElementById("detail").value==""){ 
+            alert("상세설명을 입력하세요");
+            document.getElementById("detail").focus();
+            return;
+        }
+        if(document.getElementById("product_img").value==""){ 
+            alert("상품이미지를 선택하세요");
+            return;
+        }
         
+
+
+
+        // tag간에 구조적인 소속관계는DOM화 되었을때도 그대로 유지된다
+        // 따라서 form 태그를 접근할때 반드시 id, name이외에도 DOM의 소속관계로 접근도 가능하다
+        // 현재 페이지에 대해 window나 document가 하나밖에 없기 때문에 즉 유일하기때문에 생략이 가능하다
+        form1.action="/admin/product/regist";
+        form1.method="post";
+        form1.encoding="multipart/form-data"; //바이너리 파일이 form에 포함될 경우 즉 텍스트 뿐만아니라 파일도 보낼경우
+        form1.submit(); //전송
     }
 </script>
 </head>
@@ -57,26 +144,26 @@
 <h3>상품 관리</h3>
 
 <div class="container">
-  <form action="/action_page.php">
-    <select name="topcategory_id" onChange="getSubList(this)">
-        <option value="">상위 카테고리 선택</option>
+  <form name="form1">
+    <select name="topcategory_id" id="topcategory_id"onChange="getSubList(this)">
+        <option value="0">상위 카테고리 선택</option>
         <%for(var i=0;i<record.length;i++){%>
             <%var topcategory = record[i]; //배열에 들어있는 json꺼내기!! %>
         <option value="<%=topcategory.topcategory_id%>"><%= topcategory.top_name%></option>
         <%}%>
 
     </select>
-    <select>
-        <option value="">하위 카테고리 선택</option>
+
+    <select id="subcategory_id" name="subcategory_id">  
+        <option value="0">하위 카테고리 선택</option>
     </select>
 
+    <input type="text"   id="product_name" name="product_name" placeholder="상품명">
 
-    <input type="text" id="fname" name="firstname" placeholder="상품명">
-
-    <input type="text" id="lname" name="lastname" placeholder="가격">
-    <input type="text" id="lname" name="lastname" placeholder="브랜드">
-    <textarea  placeholder="상세설명" style="height:200px"></textarea>
-    <input type="file">
+    <input type="text" id="price" name="price" placeholder="가격">
+    <input type="text" id="brand" name="brand" placeholder="브랜드">
+    <textarea  placeholder="상세설명"  id="detail" name="detail"style="height:200px"></textarea>
+    <input type="file" name = "product_img" id = "product_img" >
     <input type="checkbox" name="" id="">85
     <input type="checkbox" name="" id="">90
     <input type="checkbox" name="" id="">95
@@ -84,7 +171,7 @@
     <input type="checkbox" name="" id="">105
     <input type="checkbox" name="" id="">110
     <p></p>
-    <input type="button" value="등록">
+    <input type="button" value="등록" onclick="regist()">
   </form>
 </div>
 
