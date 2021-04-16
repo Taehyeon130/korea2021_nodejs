@@ -14,6 +14,7 @@ var multer = require("multer"); //파일업로드 처리 모듈
                                               //업로드 모듈을 통해 업무를 처리해야 한다..
                                               //jsp, php, asp 등등 언어도 원히가 동일하다..
 var mymodule=require("./lib/mymodule.js");
+var expressSessioin = require("express-session"); //설치 서버측의 세션을 관리하는 모듈
 
 const conStr={
     url:"localhost",
@@ -37,10 +38,18 @@ var upload = multer({
 
 var app = express();
 
+
 app.use(static(__dirname+"/static")); //정적자원의 최상위 루트를 설정 
 app.use(express.urlencoded({
     extended:true
 }));//post 요청의 파라미터 받기위함
+
+// 세션 설정 (모두 정해진 설정)
+app.use(expressSessioin({
+    secret:"key secret",
+    resave:true,
+    saveUninitialized:true
+}));
 
 //템플릿 뷰 엔진 등록 (서버 스크립트의 위치 등록)
 app.set("view engine","ejs"); //등록 후엔 자동으로 무도건 views 라는 디렉토리 하위에서
@@ -71,13 +80,23 @@ app.post("/admin/login", function(request, response){
         }else{
             //console.log("result는 ",result);
             //로그인이 일치 하는지 않하는지? 
-            
             if(result.length <1){
                 console.log("로그인 실패");
                 //이전 화면으로 강제로 되돌리기  history.back()
                 response.writeHead(200,{"Content-Type":"text/html;charset=utf-8"});
                 response.end(mymodule.getMsgBack("로그인 정보가 올바르지 않습니다"));
             }else{
+                console.log("로그인 조회", result);
+                // 데이터베이스 조회가 성공되었으므로, 이 관리자의 정보를 세션 영역에 담아놓자
+                // 추후 접속이 끊어진 이후에 클라이언트가 재 요청을 들어오더라도 이미 서버측의 메모리에 존재하는 세션을 참고하여
+                // 재인증 하지 않아도 된다. 마치 웹이 네트워크를 유지하는 것처럼( stateful)보여질 수있다
+                // 원래 웹은 네트워크 연결 유지가 불가능하다...
+                request.session.admin={
+                    admin_id:result[0].admin_id,
+                    master_id:result[0].master_id,
+                    master_pass:result[0].master_pass,
+                    master_name:result[0].master_name
+                };
                 response.writeHead(200,{"Content-Type":"text/html;charset=utf-8"});
                 response.end(mymodule.getMsgUrl("로그인성공","/admin/main"));
             }
@@ -88,26 +107,35 @@ app.post("/admin/login", function(request, response){
 
 //관리자 모드 메인 요청 처리 
 app.get("/admin/main", function(request, response){
-    response.render("admin/main");
+    // 인증받은 관리자의 이름을 가져오기!!
+
+    // main.ejs는 아무나 보여주면 안됨 인증을 거친 사람만이 볼 수있는 페이지
+    // 따라서 인증 과정을 수행했는지 여부는 request session객체에 개발자가 의도한 변수가 존재하는지 여부로 판단해야함
+    checkAdminSession(request,response,"admin/main");
 });
 
 
 //상품 관리 페이지 요청 처리 
 app.get("/admin/product/registform", function(request, response){
-    var sql="select * from topcategory";
-
-    var con = mysql.createConnection(conStr);
-    con.query(sql, function(err, result, fields){
-        if(err){
-            console.log("상위 카테고리 조회 실패", err);
-        }else{
-            console.log(result);
-            response.render("admin/product/regist", {
-                record:result /*배열을 ejs에 전달*/
-            });            
-        }                 
-        con.end();        
-    });
+    if(request.session.admin==undefined){ //세션에 담겨진 변수가 없다면 ...즉 로그인을 거쳐서 들어온 사용자가 아니라면 
+        response.writeHead(200,{"Content-Type":"text/html;charset=utf-8"});
+        response.end(mymodule.getMsgBack("관리자 권한 확인 필요"));
+    }else{
+        var sql="select * from topcategory";
+    
+        var con = mysql.createConnection(conStr);
+        con.query(sql, function(err, result, fields){
+            if(err){
+                console.log("상위 카테고리 조회 실패", err);
+            }else{
+                console.log(result);
+                response.render("admin/product/regist", {
+                    record:result /*배열을 ejs에 전달*/
+                });            
+            }                 
+            con.end();        
+        });
+    }
 });
 
 //선택된 상위카테고리에 소속된 하위카테고리 목록가져오기 
@@ -198,6 +226,9 @@ app.get("/admin/product/list", function(request, response){
     });
 });
 
+
+
+
 /*-------------------------------------------------------------------------
 쇼핑몰 클라이언트 측 요청 처리 
 -------------------------------------------------------------------------*/
@@ -238,6 +269,20 @@ app.get("/shop/list", function(request, response){
     });
 
 });
+
+/*--------------------------------------------------
+세션 체크
+----------------------------------------------*/ 
+function checkAdminSession(request,response,url){
+    if(request.session.admin){ //undefined가 아닌 경우에 
+        response.render(url,{
+            adminUser:request.session.admin
+        });
+    }else{
+        response.writeHead(200,{"Content-Type":"text/html;charset=utf-8"});
+        response.end(mymodule.getMsgBack("관리자 확인이 필요함"));
+    }
+}
 
 
 var server = http.createServer(app);
