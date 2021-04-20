@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Document</title>
+<style>
+.loader {
+    border: 16px solid #f3f3f3;
+    border-radius: 50%;
+    border-top: 16px solid #3498db;
+    width: 120px;
+    height: 120px;
+    -webkit-animation: spin 2s linear infinite;
+    /* Safari */
+    animation: spin 2s linear infinite;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-top: -50px;
+    margin-left: -50px;   
+}
+
+/* Safari */
+@-webkit-keyframes spin {
+    0% {
+        -webkit-transform: rotate(0deg);
+    }
+    100% {
+        -webkit-transform: rotate(360deg);
+    }
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+.wrapper{
+    width:700px;
+    height:700px;
+    margin:auto;
+    position: relative;
+}
+#content{
+    height:650px;
+    background:#ecf00c;
+    position: relative;
+}
+</style>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+$(function(){
+    $("button").click(function(){
+        $(".loader").show();
+        loadData();
+    });
+});   
+
+function loadData(){
+    //jquery ajax 사용하기 
+    $.ajax({
+        url:"/mt?mt_name="+$("input[name='mt_name']").val(),
+        type:"GET",
+        success:function(result, status, xhr){
+            //로더 감추기
+            $(".loader").hide();
+            console.log(result);
+            //화면에 출력!!! 새로고침이 발생하면 안되므로, DOM을 이용하여 동적디자인
+            //처리를 하자..근데 이 작업은 너무 가혹하다..따라서 class(객체틀)를 정의하여
+            //처리하면 그나마 좀 부담이 덜하다..하지만 클래스 정의하는 것도 쉽지 않다..
+            //facebook 프론트 개발자들이 이 부분을 좀더 효율적으로 처리하기 위해 
+            //React를 개발하였다..
+            printData(result);
+        },
+        error:function(xhr,status,error){
+        }
+    });
+}
+//json 정보를 분석하여 화면에 출력하자!! 
+function printData(data){
+    var json = JSON.parse(data); //string --> json 으로 변환 
+    var jsonArray=json.response.body.items.item;
+
+    var tag="<table border='1px' width='100%'>";
+    tag+="<tr>";
+    tag+="<td>산이름</td>";
+    tag+="<td>위치</td>";
+    tag+="<td>높이</td>";
+    tag+="</tr>";
+
+    for(var i=0;i<jsonArray.length;i++){
+        var mt = jsonArray[i]; //산 하나를 꺼내기
+        tag+="<tr>";
+        tag+="<td>"+mt.mntiname._text+"</td>";
+        tag+="<td>"+mt.mntiadd._text+"</td>";
+        tag+="<td>"+mt.mntihigh._text+"미터 </td>";
+        tag+="</tr>";                    
+    }
+    tag+="</table>";
+    
+    $("#content").html();//기존 내용지우고, 
+    $("#content").html(tag);
+}
+</script>
+</head>
+<body>
+    <div class="wrapper">
+        <div style="height:50px;">
+            <button>Load</button>
+            <input type="text" name="mt_name" placeholder="산이름 입력...">
+        </div>
+        <div id="content">
+            <div class="loader" style="display:none"></div>            
+        </div>
+    </div>    
+</body>
+</html>

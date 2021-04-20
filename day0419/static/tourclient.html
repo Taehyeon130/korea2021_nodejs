@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Document</title>
+<style>
+    .wrapper{
+        width: 100%;
+        height: 700px;
+        overflow: hidden;
+    }
+    .side{
+        width: 10%;
+        height: 100%;
+        background-color: lemonchiffon;
+        float: left;
+    }
+    #content{
+        width: 90%;
+        height: 100%;
+        float: left;
+    }
+</style>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+    var mapProp;
+    var map;
+
+    function initMap(){
+        mapProp= {
+        center:new google.maps.LatLng(36.78538815069434, 126.44316164977512),
+        zoom:7,
+        };
+        map = new google.maps.Map(document.getElementById("content"),mapProp);
+
+        // 마커 생성
+        // createMarker();
+    };
+
+    function createMarker(jsonArray){
+        // 관광지 수만큼 반복문 실행
+        for(var i=0;i<jsonArray.result.length;i++){
+            var json = jsonArray.result[i];//관광명소 하나 꺼내기
+
+            var latLng = new google.maps.LatLng(json.lat,json.lng); //위도,경도
+            var marker = new google.maps.Marker({position:latLng});
+            marker.setMap(map); //맵에 적용
+        }
+    }
+
+    $(function(){
+        $("button").click(function(){
+            loadData();
+        });
+    });
+
+    function loadData(){
+        // 뒤에오는 익명함수가 순수js에서의 if(readyState==4일때와 같다...)
+        // 익명함수의 첫번째 매개변수는 순수js어작스에서 this.responseText이다
+        // 그리고 익명함수의 두번째 매개변수는 서버의 응답코드이다
+        // $.get("https://tour.chungbuk.go.kr/openapi/tourInfo/stay.do",function(data,status){
+        //     alert(data);
+        // });
+        
+        // get,post방식을 지정할 수있는 또 다른 메서드!
+        // 주의 : 웹브라우저 클라이언트는 현재 보고있는 html을 배포한 서버와 통신이 가능하다
+        //          여기서 통신이란 요청과 응답을 말한다.
+        $.ajax({
+            type:"get",
+            url:"/tourlist",
+            success:function(result,status,xhr){ //서버의 요청이 성공했을 때 200 일때
+                /*result == responseText, status == status 코드, xhr 어작스 객체*/
+                // 서버가 mime타입을 text/json으로 지정해서 전송했기 때문에 별도의 JSON파싱을 할 필요가 없음
+                
+                // alert("게시물 수는"+result.result.length);
+
+                // 관광지 수에 따른 마커 생성을 하되 비동기적으로 생성... 새로고침 없음
+                createMarker(result);
+            },
+            error:function(){ //에러일 때 ,500
+                
+            }
+        });
+    }
+</script>
+</head>
+<body>
+    <div  class="wrapper">
+        <div class="side"><button>Load</button></div>
+        <div id="content"></div>
+    </div>
+</body>
+</html>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBF9XFdMKU0SGcs0w7dre4iGFJzlw6727I&callback=initMap"></script>
